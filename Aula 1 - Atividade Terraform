@@ -1,0 +1,555 @@
+================================================================================
+GUIA SIMPLIFICADO: TERRAFORM EM DOCKER + NGINX NO WINDOWS
+Usando apenas CMD e Bloco de Notas (Notepad)
+================================================================================
+
+================================================================================
+PRÉ-REQUISITOS
+================================================================================
+- Docker Desktop instalado e rodando no Windows
+- Prompt de Comando (CMD)
+- Bloco de Notas (Notepad)
+- Conexão com internet
+
+================================================================================
+PASSO 1: CRIAR PASTAS
+================================================================================
+
+1. Abra o Prompt de Comando (CMD)
+   - Pressione Windows + R
+   - Digite: cmd
+   - Pressione Enter
+
+2. Execute os comandos abaixo (um de cada vez):
+
+mkdir C:\terraform-docker-project
+mkdir C:\terraform-docker-project\terraform
+mkdir C:\terraform-docker-project\nginx
+cd C:\terraform-docker-project
+
+================================================================================
+PASSO 2: CRIAR ARQUIVO index.html
+================================================================================
+
+1. Abra o Bloco de Notas
+   - Pressione Windows + R
+   - Digite: notepad
+   - Pressione Enter
+
+2. Cole o conteúdo abaixo no Bloco de Notas:
+
+================================================================================
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alô Professor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .container {
+            text-align: center;
+            background: white;
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            font-size: 3em;
+            margin: 0;
+        }
+        p {
+            color: #666;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎓 Alô Professor!</h1>
+        <p>Infraestrutura provisionada com Terraform em Docker</p>
+        <p><small>Nginx rodando com sucesso!</small></p>
+    </div>
+</body>
+</html>
+================================================================================
+
+3. Salvar o arquivo:
+   - Clique em "Arquivo" > "Salvar Como..."
+   - Navegue até: C:\terraform-docker-project\nginx
+   - No campo "Nome do arquivo" digite: index.html
+   - IMPORTANTE: Em "Tipo", selecione "Todos os Arquivos (*.*)"
+   - Clique em "Salvar"
+
+4. Feche o Bloco de Notas
+
+================================================================================
+PASSO 3: CRIAR ARQUIVO main.tf
+================================================================================
+
+1. Abra o Bloco de Notas novamente
+   - Pressione Windows + R
+   - Digite: notepad
+   - Pressione Enter
+
+2. Cole o conteúdo abaixo no Bloco de Notas:
+
+================================================================================
+terraform {
+  required_providers {
+    docker = {
+      source  = "kreuzwerker/docker"
+      version = "~> 3.0"
+    }
+  }
+}
+
+provider "docker" {
+  host = "npipe:////./pipe/docker_engine"
+}
+
+resource "docker_image" "nginx" {
+  name         = "nginx:latest"
+  keep_locally = false
+}
+
+resource "docker_container" "nginx" {
+  image = docker_image.nginx.image_id
+  name  = "nginx-alo-professor"
+
+  ports {
+    internal = 80
+    external = 8080
+  }
+
+  volumes {
+    host_path      = "/c/terraform-docker-project/nginx/index.html"
+    container_path = "/usr/share/nginx/html/index.html"
+    read_only      = true
+  }
+
+  restart = "unless-stopped"
+}
+
+output "container_id" {
+  description = "ID do container Nginx"
+  value       = docker_container.nginx.id
+}
+
+output "container_name" {
+  description = "Nome do container"
+  value       = docker_container.nginx.name
+}
+
+output "url" {
+  description = "URL para acessar a aplicação"
+  value       = "http://localhost:8080"
+}
+================================================================================
+
+3. Salvar o arquivo:
+   - Clique em "Arquivo" > "Salvar Como..."
+   - Navegue até: C:\terraform-docker-project\terraform
+   - No campo "Nome do arquivo" digite: main.tf
+   - IMPORTANTE: Em "Tipo", selecione "Todos os Arquivos (*.*)"
+   - Clique em "Salvar"
+
+4. Feche o Bloco de Notas
+
+================================================================================
+PASSO 4: VERIFICAR SE OS ARQUIVOS FORAM CRIADOS CORRETAMENTE
+================================================================================
+
+No CMD, execute:
+
+dir C:\terraform-docker-project\nginx
+dir C:\terraform-docker-project\terraform
+
+Você deve ver:
+- index.html na pasta nginx
+- main.tf na pasta terraform
+
+Se os arquivos não aparecerem ou tiverem extensão .txt, você precisa refazer
+o passo de salvamento, certificando-se de selecionar "Todos os Arquivos".
+
+================================================================================
+PASSO 5: VERIFICAR SE O DOCKER ESTÁ RODANDO
+================================================================================
+
+No CMD, execute:
+
+docker --version
+
+Você deve ver algo como: Docker version 24.x.x
+
+Se der erro, abra o Docker Desktop e aguarde ele iniciar completamente.
+
+================================================================================
+PASSO 6: BAIXAR A IMAGEM DO TERRAFORM
+================================================================================
+
+No CMD, execute:
+
+docker pull hashicorp/terraform:latest
+
+Aguarde o download terminar. Pode demorar alguns minutos.
+
+Para verificar se baixou:
+
+docker images
+
+Você deve ver "hashicorp/terraform" na lista.
+
+================================================================================
+PASSO 7: INICIALIZAR O TERRAFORM
+================================================================================
+
+IMPORTANTE: O comando abaixo é GRANDE e deve ser copiado COMPLETO.
+Cole tudo de uma vez no CMD e pressione Enter.
+
+docker run --rm -it -v C:\terraform-docker-project\terraform:/workspace -v C:\terraform-docker-project\nginx:/workspace/nginx -v //./pipe/docker_engine://./pipe/docker_engine -w /workspace hashicorp/terraform:latest init
+
+Você deve ver a mensagem:
+"Terraform has been successfully initialized!"
+
+Se der erro, verifique:
+- Docker Desktop está rodando?
+- Os arquivos index.html e main.tf existem?
+- Você está na pasta C:\terraform-docker-project?
+
+================================================================================
+PASSO 8: VER O PLANO DE EXECUÇÃO (OPCIONAL)
+================================================================================
+
+Este passo mostra o que o Terraform vai criar. É opcional mas recomendado.
+
+docker run --rm -it -v C:\terraform-docker-project\terraform:/workspace -v C:\terraform-docker-project\nginx:/workspace/nginx -v //./pipe/docker_engine://./pipe/docker_engine -w /workspace hashicorp/terraform:latest plan
+
+Você verá que o Terraform vai criar:
+- 1 docker_image (nginx)
+- 1 docker_container (nginx-alo-professor)
+
+Total: 2 recursos
+
+================================================================================
+PASSO 9: CRIAR A INFRAESTRUTURA
+================================================================================
+
+Agora vamos realmente criar o container com Nginx.
+
+docker run --rm -it -v C:\terraform-docker-project\terraform:/workspace -v C:\terraform-docker-project\nginx:/workspace/nginx -v //./pipe/docker_engine://./pipe/docker_engine -w /workspace hashicorp/terraform:latest apply -auto-approve
+
+Aguarde o processo terminar. Você verá:
+"Apply complete! Resources: 2 added, 0 changed, 0 destroyed."
+
+E os outputs:
+- container_id
+- container_name  
+- url
+
+================================================================================
+PASSO 10: VERIFICAR SE ESTÁ FUNCIONANDO
+================================================================================
+
+1. Verificar se o container está rodando:
+
+docker ps
+
+Você deve ver "nginx-alo-professor" na lista.
+
+2. Testar no navegador:
+   - Abra seu navegador (Chrome, Edge, Firefox)
+   - Digite na barra de endereço: http://localhost:8080
+   - Pressione Enter
+
+Você deve ver a página "Alô Professor!" com fundo roxo/azul.
+
+3. Testar via CMD (opcional):
+
+curl http://localhost:8080
+
+ou
+
+start http://localhost:8080
+
+================================================================================
+PASSO 11: VER OS OUTPUTS DO TERRAFORM
+================================================================================
+
+Para ver as informações do que foi criado:
+
+docker run --rm -it -v C:\terraform-docker-project\terraform:/workspace -v C:\terraform-docker-project\nginx:/workspace/nginx -v //./pipe/docker_engine://./pipe/docker_engine -w /workspace hashicorp/terraform:latest output
+
+Mostrará:
+- container_id = "abc123..."
+- container_name = "nginx-alo-professor"
+- url = "http://localhost:8080"
+
+================================================================================
+PASSO 12: DESTRUIR A INFRAESTRUTURA (QUANDO TERMINAR)
+================================================================================
+
+Quando quiser parar e remover tudo:
+
+docker run --rm -it -v C:\terraform-docker-project\terraform:/workspace -v C:\terraform-docker-project\nginx:/workspace/nginx -v //./pipe/docker_engine://./pipe/docker_engine -w /workspace hashicorp/terraform:latest destroy -auto-approve
+
+Você verá:
+"Destroy complete! Resources: 2 destroyed."
+
+Para confirmar que foi removido:
+
+docker ps
+
+O container "nginx-alo-professor" não deve mais aparecer.
+
+================================================================================
+CRIAR ARQUIVO BATCH PARA FACILITAR (OPCIONAL)
+================================================================================
+
+Se quiser facilitar os comandos, você pode criar arquivos .bat
+
+1. Abra o Bloco de Notas
+
+2. Cole o conteúdo abaixo:
+
+================================================================================
+@echo off
+echo ===================================
+echo TERRAFORM EM DOCKER - MENU
+echo ===================================
+echo.
+echo 1 - Inicializar (init)
+echo 2 - Ver plano (plan)
+echo 3 - Criar infraestrutura (apply)
+echo 4 - Ver outputs
+echo 5 - Destruir infraestrutura (destroy)
+echo 6 - Ver containers rodando
+echo 0 - Sair
+echo.
+set /p opcao="Escolha uma opcao: "
+
+if "%opcao%"=="1" goto init
+if "%opcao%"=="2" goto plan
+if "%opcao%"=="3" goto apply
+if "%opcao%"=="4" goto output
+if "%opcao%"=="5" goto destroy
+if "%opcao%"=="6" goto ps
+if "%opcao%"=="0" goto fim
+echo Opcao invalida!
+pause
+goto fim
+
+:init
+echo Inicializando Terraform...
+docker run --rm -it -v C:\terraform-docker-project\terraform:/workspace -v C:\terraform-docker-project\nginx:/workspace/nginx -v //./pipe/docker_engine://./pipe/docker_engine -w /workspace hashicorp/terraform:latest init
+pause
+goto fim
+
+:plan
+echo Planejando infraestrutura...
+docker run --rm -it -v C:\terraform-docker-project\terraform:/workspace -v C:\terraform-docker-project\nginx:/workspace/nginx -v //./pipe/docker_engine://./pipe/docker_engine -w /workspace hashicorp/terraform:latest plan
+pause
+goto fim
+
+:apply
+echo Criando infraestrutura...
+docker run --rm -it -v C:\terraform-docker-project\terraform:/workspace -v C:\terraform-docker-project\nginx:/workspace/nginx -v //./pipe/docker_engine://./pipe/docker_engine -w /workspace hashicorp/terraform:latest apply -auto-approve
+echo.
+echo Acesse: http://localhost:8080
+pause
+goto fim
+
+:output
+echo Mostrando outputs...
+docker run --rm -it -v C:\terraform-docker-project\terraform:/workspace -v C:\terraform-docker-project\nginx:/workspace/nginx -v //./pipe/docker_engine://./pipe/docker_engine -w /workspace hashicorp/terraform:latest output
+pause
+goto fim
+
+:destroy
+echo Destruindo infraestrutura...
+docker run --rm -it -v C:\terraform-docker-project\terraform:/workspace -v C:\terraform-docker-project\nginx:/workspace/nginx -v //./pipe/docker_engine://./pipe/docker_engine -w /workspace hashicorp/terraform:latest destroy -auto-approve
+pause
+goto fim
+
+:ps
+echo Containers rodando:
+docker ps
+pause
+goto fim
+
+:fim
+================================================================================
+
+3. Salvar o arquivo:
+   - Clique em "Arquivo" > "Salvar Como..."
+   - Navegue até: C:\terraform-docker-project
+   - No campo "Nome do arquivo" digite: terraform.bat
+   - IMPORTANTE: Em "Tipo", selecione "Todos os Arquivos (*.*)"
+   - Clique em "Salvar"
+
+4. Para usar o menu:
+   - No CMD, execute: terraform.bat
+   - Escolha a opção desejada
+
+================================================================================
+RESUMO DOS COMANDOS PRINCIPAIS
+================================================================================
+
+INICIALIZAR (executar 1 vez):
+docker run --rm -it -v C:\terraform-docker-project\terraform:/workspace -v C:\terraform-docker-project\nginx:/workspace/nginx -v //./pipe/docker_engine://./pipe/docker_engine -w /workspace hashicorp/terraform:latest init
+
+VER PLANO:
+docker run --rm -it -v C:\terraform-docker-project\terraform:/workspace -v C:\terraform-docker-project\nginx:/workspace/nginx -v //./pipe/docker_engine://./pipe/docker_engine -w /workspace hashicorp/terraform:latest plan
+
+CRIAR:
+docker run --rm -it -v C:\terraform-docker-project\terraform:/workspace -v C:\terraform-docker-project\nginx:/workspace/nginx -v //./pipe/docker_engine://./pipe/docker_engine -w /workspace hashicorp/terraform:latest apply -auto-approve
+
+DESTRUIR:
+docker run --rm -it -v C:\terraform-docker-project\terraform:/workspace -v C:\terraform-docker-project\nginx:/workspace/nginx -v //./pipe/docker_engine://./pipe/docker_engine -w /workspace hashicorp/terraform:latest destroy -auto-approve
+
+================================================================================
+COMANDOS ÚTEIS DO DOCKER
+================================================================================
+
+Ver containers rodando:
+docker ps
+
+Ver todos os containers:
+docker ps -a
+
+Parar o container:
+docker stop nginx-alo-professor
+
+Remover o container:
+docker rm nginx-alo-professor
+
+Ver logs do container:
+docker logs nginx-alo-professor
+
+Entrar no container:
+docker exec -it nginx-alo-professor /bin/bash
+
+Ver imagens:
+docker images
+
+Remover imagem:
+docker rmi nginx
+
+================================================================================
+POSSÍVEIS PROBLEMAS E SOLUÇÕES
+================================================================================
+
+PROBLEMA 1: "Cannot connect to the Docker daemon"
+SOLUÇÃO: 
+- Abra o Docker Desktop
+- Aguarde até aparecer "Docker Desktop is running"
+- Tente novamente
+
+PROBLEMA 2: "No such file or directory"
+SOLUÇÃO:
+- Verifique se está na pasta correta: cd C:\terraform-docker-project
+- Verifique se os arquivos existem:
+  dir C:\terraform-docker-project\nginx\index.html
+  dir C:\terraform-docker-project\terraform\main.tf
+
+PROBLEMA 3: Arquivos com extensão .txt
+SOLUÇÃO:
+- Ao salvar no Notepad, selecione "Todos os Arquivos (*.*)"
+- Digite o nome completo com extensão: index.html ou main.tf
+- Verifique com: dir /b
+
+PROBLEMA 4: "Port 8080 is already allocated"
+SOLUÇÃO:
+- Algum outro programa está usando a porta 8080
+- Opção 1: Pare o outro programa
+- Opção 2: Mude a porta no main.tf:
+  Troque "external = 8080" por "external = 8081"
+  Execute terraform apply novamente
+  Acesse http://localhost:8081
+
+PROBLEMA 5: Página não carrega
+SOLUÇÃO:
+- Verifique se o container está rodando: docker ps
+- Veja os logs: docker logs nginx-alo-professor
+- Tente reiniciar o container:
+  docker restart nginx-alo-professor
+
+PROBLEMA 6: "Error locking state"
+SOLUÇÃO:
+- Aguarde alguns segundos e tente novamente
+- Se persistir, delete o arquivo de lock:
+  del C:\terraform-docker-project\terraform\.terraform.tfstate.lock.info
+
+================================================================================
+ESTRUTURA FINAL DOS ARQUIVOS
+================================================================================
+
+C:\terraform-docker-project\
+│
+├── nginx\
+│   └── index.html                    (criado por você)
+│
+├── terraform\
+│   ├── main.tf                       (criado por você)
+│   ├── .terraform\                   (criado pelo init)
+│   ├── .terraform.lock.hcl           (criado pelo init)
+│   └── terraform.tfstate             (criado pelo apply)
+│
+└── terraform.bat                     (opcional - criado por você)
+
+================================================================================
+TESTANDO TUDO PASSO A PASSO
+================================================================================
+
+CHECKLIST - Execute nesta ordem:
+
+[ ] 1. Docker Desktop está rodando?
+[ ] 2. Pastas criadas (terraform e nginx)?
+[ ] 3. Arquivo index.html criado e salvo corretamente?
+[ ] 4. Arquivo main.tf criado e salvo corretamente?
+[ ] 5. Imagem do Terraform baixada (docker pull)?
+[ ] 6. Terraform inicializado (init)?
+[ ] 7. Plano visualizado (plan)?
+[ ] 8. Infraestrutura criada (apply)?
+[ ] 9. Container aparece em docker ps?
+[ ] 10. Página abre no navegador em localhost:8080?
+
+Se todos os itens estiverem OK, parabéns! Funcionou! 🎉
+
+================================================================================
+PRÓXIMOS PASSOS
+================================================================================
+
+Depois que funcionar, você pode:
+
+1. Modificar o index.html e aplicar novamente
+2. Adicionar mais containers (banco de dados, etc)
+3. Expor em outras portas
+4. Criar uma rede Docker customizada
+5. Usar volumes nomeados
+6. Explorar outros recursos do Terraform
+
+================================================================================
+DICAS IMPORTANTES
+================================================================================
+
+1. Sempre execute os comandos docker run completos (não quebre no meio)
+2. Verifique se o Docker Desktop está rodando ANTES de executar comandos
+3. Use "Todos os Arquivos" ao salvar no Notepad
+4. Cole os comandos no CMD de uma vez só
+5. Se der erro, leia a mensagem com atenção
+6. Use docker ps para verificar o que está rodando
+7. Use docker logs para ver erros do container
+
+================================================================================
+FIM DO GUIA
+================================================================================
