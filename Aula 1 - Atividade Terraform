@@ -114,8 +114,9 @@ terraform {
 }
 
 provider "docker" {
-  host = "npipe:////./pipe/docker_engine"
+  host = "tcp://host.docker.internal:2375"
 }
+
 
 resource "docker_image" "nginx" {
   name         = "nginx:latest"
