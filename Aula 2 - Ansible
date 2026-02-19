@@ -40,7 +40,7 @@ Passo 3: Execute o Docker e o Ansible
 Agora, vamos executar o contêiner Docker e instruí-lo a rodar nosso playbook. Você deve ter os arquivos hosts.ini e playbook.yml no mesmo diretório em que está executando o comando.
 Bash
 
-docker run --rm -v $(pwd):/ansible deltamir/terraform-ansible:1.8.0 ansible-playbook playbook.yml -i hosts.ini
+docker run --rm -v %cd%:/ansible -w /ansible deltamir/terraform-ansible:1.8.0 ansible-playbook playbook.yml -i hosts.ini
 
 Explicando o comando
 
