@@ -1,0 +1,48 @@
+Comandos para criar e executar o ambiente Nginx com a página "Alô Professor":
+
+1. Inicie o container:
+bash
+
+docker run -it deltamir/terraform-ansible:1.8.0
+
+2. Crie o arquivo de inventário hosts.ini:
+bash
+
+echo "[local]" > hosts.ini
+echo "localhost ansible_connection=local" >> hosts.ini
+
+3. Crie o playbook playbook.yml:
+bash
+
+echo "---" > playbook.yml
+echo "- hosts: localhost" >> playbook.yml
+echo "  become: yes" >> playbook.yml
+echo "  tasks:" >> playbook.yml
+echo "    - name: Instalar nginx" >> playbook.yml
+echo "      apt:" >> playbook.yml
+echo "        name: nginx" >> playbook.yml
+echo "        state: present" >> playbook.yml
+echo "        update_cache: yes" >> playbook.yml
+echo "    - name: Criar pagina HTML" >> playbook.yml
+echo "      copy:" >> playbook.yml
+echo "        content: '<h1>Alo Professor</h1>'" >> playbook.yml
+echo "        dest: /var/www/html/index.html" >> playbook.yml
+echo "    - name: Iniciar nginx" >> playbook.yml
+echo "      service:" >> playbook.yml
+echo "        name: nginx" >> playbook.yml
+echo "        state: started" >> playbook.yml
+
+4. Execute o playbook:
+bash
+
+ansible-playbook playbook.yml -i hosts.ini
+
+5. Verifique se está funcionando:
+bash
+
+curl http://localhost
+
+O resultado esperado é:
+html<h1>Alo Professor</h1>
+
+Obs: O -it mantém o terminal interativo. Todo o trabalho acontece dentro do container, sem necessidade de montar volumes do Windows.
