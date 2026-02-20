@@ -3,7 +3,7 @@ Comandos para criar e executar o ambiente Nginx com a página "Alô Professor":
 1. Inicie o container:
 bash
 
-docker run -it deltamir/terraform-ansible:1.8.0
+docker run -it -u root deltamir/terraform-ansible:1.8.0 /bin/bash
 
 2. Crie o arquivo de inventário hosts.ini:
 bash
